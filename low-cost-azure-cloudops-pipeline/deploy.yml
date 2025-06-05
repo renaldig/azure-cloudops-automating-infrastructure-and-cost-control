@@ -1,0 +1,38 @@
+# Azure DevOps – Low-Cost CloudOps pipeline
+# • Runs on every commit to main
+# • Deploys the Bicep template to resource group 'training-rg'
+# • Uses an Environment named 'production' so you can add an approval gate
+
+trigger:
+  - main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+# -----------  pipeline variables  -------------
+variables:
+  azureServiceConnection: 'MySPN'      # Service connection name in DevOps
+  resourceGroupName:     'training-rg' # Target RG (must already exist)
+  templateFile:          'stack.bicep' # Path in the repo
+
+# -----------  stages / jobs  ------------------
+stages:
+- stage: Deploy
+  displayName: Deploy infrastructure
+  jobs:
+  - job: DeployStuff
+    displayName: Run Bicep deployment
+    environment: production            # Approval gate lives on this Env
+    steps:
+    - task: AzureCLI@2
+      displayName: 'az deployment group create'
+      inputs:
+        azureSubscription: $(azureServiceConnection)
+        scriptType: bash
+        scriptLocation: inlineScript
+        inlineScript: |
+          echo "Deploying $(templateFile) to $(resourceGroupName)…"
+          az deployment group create \
+            --resource-group $(resourceGroupName) \
+            --template-file $(templateFile) \
+            --parameters owner=$(Build.RequestedFor)
