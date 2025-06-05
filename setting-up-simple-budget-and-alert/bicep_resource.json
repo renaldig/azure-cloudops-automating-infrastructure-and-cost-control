@@ -1,0 +1,9 @@
+param location string = resourceGroup().location
+
+resource sa 'Microsoft.Storage/storageAccounts@2023-01-01' = {
+  name: 'training${uniqueString(resourceGroup().id)}'
+  location: location
+  kind: 'StorageV2'
+  sku: { name: 'Standard_LRS' }
+  properties: {}
+}
