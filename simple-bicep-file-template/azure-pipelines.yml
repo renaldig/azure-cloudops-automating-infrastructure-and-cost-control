@@ -1,0 +1,31 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- master
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  azureSub: 'FreeTierConnection'
+  rgName:   'DemoRG'
+  tplFile:  'main.bicep'
+
+stages:
+- stage: Deploy
+  displayName: Deploy IaC
+  jobs:
+  - job: bicep
+    steps:
+    - task: AzureCLI@2
+      inputs:
+        azureSubscription: $(azureSub)
+        scriptType: bash
+        scriptLocation: inlineScript
+        inlineScript: |
+          az deployment group create \
+            --resource-group $(rgName) \
+            --template-file $(tplFile)
